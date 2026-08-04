@@ -1,0 +1,14 @@
+{
+  "name": "테라포밍 마스 보드",
+  "short_name": "TM 보드",
+  "description": "테라포밍 마스 자원 트래커 + 카드 결제 계산기",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

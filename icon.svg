@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="28%" r="85%">
+      <stop offset="0%" stop-color="#1b2b4a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <radialGradient id="mars" cx="38%" cy="34%" r="78%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="45%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 배경 (마스커블 세이프존 고려: 핵심은 중앙 80%) -->
+  <rect width="512" height="512" fill="url(#sky)"/>
+
+  <!-- 행성 -->
+  <circle cx="256" cy="278" r="146" fill="url(#mars)"/>
+  <!-- 크레이터 음영 -->
+  <circle cx="212" cy="238" r="20" fill="#00000022"/>
+  <circle cx="304" cy="312" r="28" fill="#00000022"/>
+  <circle cx="292" cy="224" r="13" fill="#00000022"/>
+  <circle cx="228" cy="330" r="15" fill="#00000022"/>
+
+  <!-- 테라포밍 새싹 -->
+  <path d="M256 320 C256 268 256 224 256 180" stroke="#4d7c0f" stroke-width="16" fill="none" stroke-linecap="round"/>
+  <path d="M256 236 C226 224 198 234 188 206 C226 194 250 210 256 236 Z" fill="#65a30d"/>
+  <path d="M256 208 C286 196 314 206 324 178 C286 166 262 182 256 208 Z" fill="#84cc16"/>
+</svg>

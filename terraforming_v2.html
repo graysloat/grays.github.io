@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>테라포밍 마스 보드 (+결제기 / 3테마)</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TM 보드">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        /* ===== 게임 자원 고유 색상 (테마 무관) ===== */
+        :root {
+            --bg-mc: #D4AF37; --bg-steel: #8D9092; --bg-tit: #4A4D50;
+            --bg-plant: #558B2F; --bg-energy: #6A1B9A; --bg-heat: #D84315;
+        }
+
+        /* ===== 테마별 변수 (기본: 미션 컨트롤) ===== */
+        body[data-theme="control"] {
+            --font: 'Pretendard', -apple-system, 'Segoe UI', sans-serif;
+            --page-bg: radial-gradient(circle at 50% -10%, #12203a, #020617 65%);
+            --surface: linear-gradient(145deg, rgba(30,41,59,.9), rgba(15,23,42,.92));
+            --surface-2: rgba(2,6,23,.6);
+            --border: rgba(56,189,248,.35);
+            --radius: 14px;
+            --text: #e2e8f0; --text-dim: #7dd3fc;
+            --accent: #22d3ee; --accent-text: #04121a;
+            --shadow-panel: 0 8px 30px rgba(0,0,0,.6), 0 0 0 1px rgba(34,211,238,.12), inset 0 1px 0 rgba(255,255,255,.05);
+            --shadow-cell: inset 0 0 22px rgba(0,0,0,.55), 0 0 0 1px rgba(56,189,248,.18);
+            --title-text: #f1f5f9;
+            --dial-bg: #04121a; --dial-border: rgba(56,189,248,.3);
+            --valscreen-bg: #0b1f2a; --valscreen-text: #67e8f9; --prod-text: #fb7185;
+            --dialbtn-bg: rgba(34,211,238,.12); --dialbtn-text: #a5f3fc; --dialbtn-border: rgba(56,189,248,.3);
+            --input-bg: #04121a;
+            --section-color: #38bdf8;
+        }
+        body[data-theme="minimal"] {
+            --font: 'Pretendard', -apple-system, 'Segoe UI', sans-serif;
+            --page-bg: #eef2f7;
+            --surface: #ffffff;
+            --surface-2: #f4f6fa;
+            --border: #e2e8f0;
+            --radius: 16px;
+            --text: #0f172a; --text-dim: #64748b;
+            --accent: #6366f1; --accent-text: #ffffff;
+            --shadow-panel: 0 1px 3px rgba(15,23,42,.08), 0 10px 28px rgba(15,23,42,.07);
+            --shadow-cell: 0 1px 2px rgba(15,23,42,.15), 0 6px 16px rgba(15,23,42,.10);
+            --title-text: #ffffff;
+            --dial-bg: #ffffff; --dial-border: #e2e8f0;
+            --valscreen-bg: #f1f5f9; --valscreen-text: #0f172a; --prod-text: #dc2626;
+            --dialbtn-bg: #f1f5f9; --dialbtn-text: #334155; --dialbtn-border: #e2e8f0;
+            --input-bg: #f8fafc;
+            --section-color: #6366f1;
+        }
+        body[data-theme="mars"] {
+            --font: 'Pretendard', -apple-system, 'Segoe UI', sans-serif;
+            --page-bg: radial-gradient(circle at 30% -10%, #5a2c19, #24100a 72%);
+            --surface: linear-gradient(160deg, #4a2415, #331207);
+            --surface-2: rgba(0,0,0,.32);
+            --border: rgba(234,88,12,.42);
+            --radius: 16px;
+            --text: #fdead0; --text-dim: #fbbf24;
+            --accent: #ea580c; --accent-text: #1a0a04;
+            --shadow-panel: 0 10px 30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,200,120,.14);
+            --shadow-cell: inset 0 2px 8px rgba(0,0,0,.55), 0 2px 5px rgba(255,180,100,.15);
+            --title-text: #fff7ed;
+            --dial-bg: #1a0a04; --dial-border: rgba(234,88,12,.35);
+            --valscreen-bg: #2a1207; --valscreen-text: #fbbf24; --prod-text: #f87171;
+            --dialbtn-bg: rgba(234,88,12,.2); --dialbtn-text: #fed7aa; --dialbtn-border: rgba(234,88,12,.35);
+            --input-bg: #1a0a04;
+            --section-color: #fb923c;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+        body {
+            font-family: var(--font);
+            background: var(--page-bg); background-attachment: fixed;
+            color: var(--text);
+            margin: 0; padding: 12px 12px 30px;
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            transition: background .3s ease, color .3s ease;
+        }
+
+        /* ===== 2단 레이아웃 ===== */
+        .app { width: 100%; max-width: 1020px; display: flex; gap: 14px; align-items: flex-start; }
+        .left-col { flex: 1 1 400px; min-width: 300px; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+        .right-col { flex: 1 1 500px; min-width: 300px; display: flex; flex-direction: column; }
+        @media (max-width: 840px) {
+            .app { flex-direction: column; }
+            .left-col, .right-col { max-width: 600px; width: 100%; flex: none; }
+            .right-col { order: -1; }   /* 좁은 화면: 보드 먼저 */
+            .left-col { align-self: center; }
+            .right-col { align-self: center; }
+        }
+
+        /* ===== 테마 전환기 (아이콘 전용, 보드 우측 상단) ===== */
+        .theme-switcher { display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 12px; }
+        .theme-btn {
+            width: 42px; height: 42px; font-size: 1.2rem; padding: 0; cursor: pointer; line-height: 1;
+            border-radius: 11px; border: 1px solid var(--border);
+            background: var(--surface-2); color: var(--text); transition: .15s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .theme-btn.active { background: var(--accent); border-color: transparent; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); transform: translateY(-1px); }
+
+        /* ===== 상단 대시보드 ===== */
+        .top-dashboard {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface); padding: 12px; border-radius: var(--radius);
+            margin-bottom: 12px; box-shadow: var(--shadow-panel); border: 1px solid var(--border);
+        }
+        .tr-panel { display: flex; align-items: center; background: var(--surface-2); padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border); }
+        .tr-badge { background: #d32f2f; color: #fff; font-weight: 900; padding: 4px 8px; border-radius: 5px; margin-right: 10px; font-size: 1.1rem; }
+        .tr-btn { background: var(--dialbtn-bg); color: var(--dialbtn-text); border: 1px solid var(--dialbtn-border); width: 30px; height: 30px; font-size: 1.2rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .tr-btn:active { filter: brightness(1.4); }
+        .tr-val { color: var(--text); font-size: 1.5rem; font-weight: bold; min-width: 45px; text-align: center; }
+        .gen-info { color: var(--text-dim); font-size: 0.8rem; text-align: right; margin-bottom: 4px; }
+        .next-btn { background: var(--accent); color: var(--accent-text); border: none; padding: 8px 16px; font-size: 0.95rem; font-weight: 900; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.35); }
+        .next-btn:active { transform: translateY(3px); box-shadow: 0 0 0; }
+        .dash-btns { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+        .reset-btn { background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--border); width: 40px; height: 38px; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        .reset-btn:active { filter: brightness(1.3); }
+
+        /* ===== 메인 보드 ===== */
+        .board-container {
+            background: var(--surface-2); padding: 8px; border-radius: var(--radius);
+            box-shadow: var(--shadow-panel); border: 1px solid var(--border); width: 100%;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+        }
+        .cell { border-radius: 12px; box-shadow: var(--shadow-cell); padding: 8px 4px; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .c-mc { background-color: var(--bg-mc); } .c-steel { background-color: var(--bg-steel); } .c-tit { background-color: var(--bg-tit); }
+        .c-plant { background-color: var(--bg-plant); } .c-energy { background-color: var(--bg-energy); } .c-heat { background-color: var(--bg-heat); }
+        .title { font-size: 0.9rem; font-weight: 900; color: var(--title-text); text-shadow: 1px 1px 2px rgba(0,0,0,0.7); margin-bottom: 6px; text-align: center; }
+        .sub-label { font-size: 0.7rem; font-weight: bold; color: #fff; background: rgba(0,0,0,0.45); padding: 2px 8px; border-radius: 10px; margin: 4px 0; }
+        .dial { background: var(--dial-bg); border-radius: 16px; border: 2px solid var(--dial-border); box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.08); display: flex; align-items: center; padding: 4px 6px; gap: 6px; width: 98%; justify-content: center; }
+        .dial.prod-dial { transform: scale(0.9); margin-bottom: 4px; }
+        .btn-col { display: flex; flex-direction: column; gap: 4px; }
+        .dial-btn { background: var(--dialbtn-bg); color: var(--dialbtn-text); border: 1px solid var(--dialbtn-border); border-radius: 5px; width: 26px; height: 22px; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation; }
+        .dial-btn:active { filter: brightness(1.4); }
+        .val-screen { background: var(--valscreen-bg); color: var(--valscreen-text); font-size: 1.3rem; font-weight: 900; min-width: 34px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); border: 1px solid var(--dial-border); }
+        .prod-dial .val-screen { color: var(--prod-text); }
+        .arrow-icon { font-size: 0.75rem; color: var(--title-text); margin-top: 4px; text-shadow: 1px 1px 1px rgba(0,0,0,.8); }
+
+        /* ===== 공통 패널 ===== */
+        .panel, .system-panel {
+            width: 100%; background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow-panel); color: var(--text);
+        }
+        .section-title { font-size: 1.05rem; font-weight: 800; color: var(--section-color); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+        .section-title:not(:first-child) { margin-top: 16px; }
+
+        /* 글로벌 파라미터 */
+        .gp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gp-item { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .gp-head { font-size: 0.85rem; font-weight: 800; color: var(--text); }
+        .gp-value { font-size: 1.7rem; font-weight: 900; color: var(--text); line-height: 1; }
+        .gp-value .unit { font-size: 0.9rem; color: var(--text-dim); font-weight: 700; }
+        .gp-manual { display: flex; align-items: center; gap: 8px; }
+        .gp-manual button { background: var(--dialbtn-bg); color: var(--dialbtn-text); border: 1px solid var(--dialbtn-border); border-radius: 6px; width: 30px; height: 28px; font-size: 1.1rem; cursor: pointer; }
+        .gp-manual button:active { filter: brightness(1.4); }
+        .gp-manual .mhint { font-size: 0.62rem; color: var(--text-dim); text-align: center; width: 62px; line-height: 1.1; }
+        .convert-btn { width: 100%; border: none; border-radius: 8px; padding: 9px; font-size: 0.85rem; font-weight: 800; color: #fff; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.35); text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+        .convert-btn:active { transform: translateY(3px); box-shadow: 0 0 0; }
+        .convert-btn.plant { background: var(--bg-plant); }
+        .convert-btn.heat { background: var(--bg-heat); }
+        .cost-adj { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-dim); }
+        .cost-adj button { background: var(--dialbtn-bg); color: var(--dialbtn-text); border: 1px solid var(--dialbtn-border); border-radius: 4px; width: 22px; height: 22px; cursor: pointer; }
+        .cost-adj .cost-val { font-weight: 800; color: var(--text); min-width: 16px; text-align: center; }
+
+        /* 할인 기록기 (6종) */
+        .discount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .dc-item { background: var(--surface-2); padding: 6px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .dc-name { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 4px; }
+        .dc-ctrl { display: flex; justify-content: center; align-items: center; gap: 4px; }
+        .dc-btn { background: var(--dialbtn-bg); color: var(--dialbtn-text); border: 1px solid var(--dialbtn-border); border-radius: 4px; width: 22px; height: 22px; cursor: pointer; }
+        .dc-val { font-weight: bold; color: var(--text); min-width: 20px; font-size: 0.9rem; }
+
+        /* 자원 교환가치 */
+        .resval-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .resval-item { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .rv-name { font-size: 0.8rem; color: var(--text); font-weight: 700; }
+        .rv-ctrl { display: flex; align-items: center; gap: 6px; }
+        .rv-ctrl button { background: var(--dialbtn-bg); color: var(--dialbtn-text); border: 1px solid var(--dialbtn-border); border-radius: 5px; width: 26px; height: 26px; font-size: 1rem; cursor: pointer; }
+        .rv-val { font-weight: 900; font-size: 1.1rem; min-width: 18px; text-align: center; color: var(--section-color); }
+
+        /* 결제 폼 */
+        .pay-row { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+        .pay-label { font-size: 0.85rem; width: 74px; color: var(--text-dim); flex-shrink: 0; }
+        .cost-input { flex: 1; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 1rem; font-weight: bold; text-align: center; }
+        .tag-toggles { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+        .tag-btn { flex: 1 1 52px; padding: 6px 4px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--text-dim); cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .tag-btn.active.space { background: #1565C0; color: white; border-color: #42A5F5; }
+        .tag-btn.active.build { background: #5D4037; color: white; border-color: #8D6E63; }
+        .tag-btn.active.power { background: #6A1B9A; color: white; border-color: #AB47BC; }
+        .tag-btn.active.science { background: #00838F; color: white; border-color: #4DD0E1; }
+        .tag-btn.active.earth { background: #2E7D32; color: white; border-color: #66BB6A; }
+
+        .use-resource-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin: 12px 0; }
+        .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .res-row:last-child { margin-bottom: 0; }
+        .res-name { font-size: 0.8rem; color: var(--text); display: flex; align-items: center; gap: 4px; }
+        .res-ctrl { display: flex; align-items: center; gap: 8px; }
+        .res-ctrl button { background: var(--dialbtn-bg); color: var(--dialbtn-text); border: 1px solid var(--dialbtn-border); border-radius: 6px; width: 28px; height: 28px; font-size: 1rem; cursor: pointer; }
+        .res-ctrl .res-val { font-weight: bold; font-size: 1.1rem; width: 20px; text-align: center; color: var(--text); }
+        .res-value-hint { font-size: 0.75rem; color: var(--text-dim); width: 60px; text-align: right; }
+
+        .final-summary { background: var(--surface-2); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); margin-bottom: 10px; }
+        .final-cost-text { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 4px; }
+        .final-mc-text { font-size: 1.3rem; font-weight: 900; color: #4CAF50; }
+        .final-mc-text.error { color: #F44336; }
+        .submit-btn { width: 100%; background: #4CAF50; color: white; border: none; padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #2E7D32; }
+        .submit-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #2E7D32; }
+    </style>
+</head>
+<body data-theme="control">
+
+    <div class="app">
+        <!-- ===== 좌측: 패널들 ===== -->
+        <div class="left-col">
+            <!-- 글로벌 파라미터 -->
+            <div class="panel">
+                <div class="section-title">🌍 글로벌 파라미터 (자동 테라포밍)</div>
+                <div class="gp-grid">
+                    <div class="gp-item">
+                        <div class="gp-head">🟢 산소 (O₂)</div>
+                        <div class="gp-value"><span id="oxygen-val">0</span><span class="unit">%</span></div>
+                        <div class="gp-manual">
+                            <button onclick="modGlobal('oxygen',-1)">−</button>
+                            <span class="mhint">수동 조정<br>(TR 무관)</span>
+                            <button onclick="modGlobal('oxygen',1)">＋</button>
+                        </div>
+                        <button class="convert-btn plant" onclick="plantToGreenery()">🌿 나무 심기 (식물 <span id="cost-greenery">8</span>)</button>
+                        <div class="cost-adj">
+                            식물 비용
+                            <button onclick="modConvCost('greenery',-1)">−</button>
+                            <span class="cost-val" id="cost-greenery-adj">8</span>
+                            <button onclick="modConvCost('greenery',1)">＋</button>
+                        </div>
+                    </div>
+                    <div class="gp-item">
+                        <div class="gp-head">🌡️ 온도</div>
+                        <div class="gp-value"><span id="temp-val">-30</span><span class="unit">°C</span></div>
+                        <div class="gp-manual">
+                            <button onclick="modGlobal('temp',-1)">−</button>
+                            <span class="mhint">수동 조정<br>(TR 무관)</span>
+                            <button onclick="modGlobal('temp',1)">＋</button>
+                        </div>
+                        <button class="convert-btn heat" onclick="heatToTemp()">🔥 온도 올리기 (열 <span id="cost-temp">8</span>)</button>
+                        <div class="cost-adj">
+                            열 비용
+                            <button onclick="modConvCost('temp',-1)">−</button>
+                            <span class="cost-val" id="cost-temp-adj">8</span>
+                            <button onclick="modConvCost('temp',1)">＋</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 할인 / 교환가치 / 결제 -->
+            <div class="system-panel">
+                <div class="section-title">🏷️ 영구 할인 기록기</div>
+                <div class="discount-grid">
+                    <div class="dc-item">
+                        <div class="dc-name">전체 할인</div>
+                        <div class="dc-ctrl">
+                            <button class="dc-btn" onclick="modDC('global',-1)">-</button>
+                            <div class="dc-val" id="dc-global">0</div>
+                            <button class="dc-btn" onclick="modDC('global',1)">+</button>
+                        </div>
+                    </div>
+                    <div class="dc-item">
+                        <div class="dc-name">우주 할인</div>
+                        <div class="dc-ctrl">
+                            <button class="dc-btn" onclick="modDC('space',-1)">-</button>
+                            <div class="dc-val" id="dc-space">0</div>
+                            <button class="dc-btn" onclick="modDC('space',1)">+</button>
+                        </div>
+                    </div>
+                    <div class="dc-item">
+                        <div class="dc-name">건물(강철)</div>
+                        <div class="dc-ctrl">
+                            <button class="dc-btn" onclick="modDC('build',-1)">-</button>
+                            <div class="dc-val" id="dc-build">0</div>
+                            <button class="dc-btn" onclick="modDC('build',1)">+</button>
+                        </div>
+                    </div>
+                    <div class="dc-item">
+                        <div class="dc-name">전력 할인</div>
+                        <div class="dc-ctrl">
+                            <button class="dc-btn" onclick="modDC('power',-1)">-</button>
+                            <div class="dc-val" id="dc-power">0</div>
+                            <button class="dc-btn" onclick="modDC('power',1)">+</button>
+                        </div>
+                    </div>
+                    <div class="dc-item">
+                        <div class="dc-name">연구 할인</div>
+                        <div class="dc-ctrl">
+                            <button class="dc-btn" onclick="modDC('science',-1)">-</button>
+                            <div class="dc-val" id="dc-science">0</div>
+                            <button class="dc-btn" onclick="modDC('science',1)">+</button>
+                        </div>
+                    </div>
+                    <div class="dc-item">
+                        <div class="dc-name">지구 할인</div>
+                        <div class="dc-ctrl">
+                            <button class="dc-btn" onclick="modDC('earth',-1)">-</button>
+                            <div class="dc-val" id="dc-earth">0</div>
+                            <button class="dc-btn" onclick="modDC('earth',1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">💠 자원 교환가치</div>
+                <div class="resval-grid">
+                    <div class="resval-item">
+                        <div class="rv-name">🛠️ 강철 값</div>
+                        <div class="rv-ctrl">
+                            <button onclick="modResVal('steel',-1)">−</button>
+                            <span class="rv-val" id="rv-steel">2</span>
+                            <button onclick="modResVal('steel',1)">＋</button>
+                        </div>
+                    </div>
+                    <div class="resval-item">
+                        <div class="rv-name">⭐ 티타늄 값</div>
+                        <div class="rv-ctrl">
+                            <button onclick="modResVal('tit',-1)">−</button>
+                            <span class="rv-val" id="rv-tit">3</span>
+                            <button onclick="modResVal('tit',1)">＋</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">💳 카드 결제 계산기</div>
+                <div class="pay-row">
+                    <div class="pay-label">기본 비용</div>
+                    <input type="number" id="base-cost" class="cost-input" value="0" min="0" oninput="calcPayment()">
+                </div>
+                <div class="pay-row">
+                    <div class="pay-label">태그 선택</div>
+                    <div class="tag-toggles">
+                        <button class="tag-btn space" id="tag-space" onclick="toggleTag('space')">우주</button>
+                        <button class="tag-btn build" id="tag-build" onclick="toggleTag('build')">건물</button>
+                        <button class="tag-btn power" id="tag-power" onclick="toggleTag('power')">전력</button>
+                        <button class="tag-btn science" id="tag-science" onclick="toggleTag('science')">연구</button>
+                        <button class="tag-btn earth" id="tag-earth" onclick="toggleTag('earth')">지구</button>
+                    </div>
+                </div>
+
+                <div class="use-resource-box">
+                    <div class="res-row">
+                        <div class="res-name" id="res-name-steel">🛠️ 강철 사용 (×2)</div>
+                        <div class="res-ctrl">
+                            <button onclick="modPayRes('steel',-1)">-</button>
+                            <div class="res-val" id="pay-steel">0</div>
+                            <button onclick="modPayRes('steel',1)">+</button>
+                            <div class="res-value-hint" id="val-steel">(0 M€)</div>
+                        </div>
+                    </div>
+                    <div class="res-row">
+                        <div class="res-name" id="res-name-tit">⭐ 티타늄 사용 (×3)</div>
+                        <div class="res-ctrl">
+                            <button onclick="modPayRes('tit',-1)">-</button>
+                            <div class="res-val" id="pay-tit">0</div>
+                            <button onclick="modPayRes('tit',1)">+</button>
+                            <div class="res-value-hint" id="val-tit">(0 M€)</div>
+                        </div>
+                    </div>
+                    <div class="res-row">
+                        <div class="res-name">🔥 열 사용 (×1)</div>
+                        <div class="res-ctrl">
+                            <button onclick="modPayRes('heat',-1)">-</button>
+                            <div class="res-val" id="pay-heat">0</div>
+                            <button onclick="modPayRes('heat',1)">+</button>
+                            <div class="res-value-hint" id="val-heat">(0 M€)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="final-summary">
+                    <div class="final-cost-text" id="calc-breakdown">기본 0 - 할인 0 = 최종 비용: 0 M€</div>
+                    <div class="final-mc-text" id="final-mc-req">M€ 자동 차감액: 0</div>
+                </div>
+                <button class="submit-btn" onclick="executePayment()">결제 및 차감하기</button>
+            </div>
+        </div>
+
+        <!-- ===== 우측: 테마 / 대시보드 / 보드 ===== -->
+        <div class="right-col">
+            <div class="theme-switcher">
+                <button class="theme-btn" data-theme="control" onclick="setTheme('control')" title="미션 컨트롤">🛰️</button>
+                <button class="theme-btn" data-theme="minimal" onclick="setTheme('minimal')" title="미니멀">☀️</button>
+                <button class="theme-btn" data-theme="mars" onclick="setTheme('mars')" title="화성 지형">🔴</button>
+            </div>
+
+            <div class="top-dashboard">
+                <div class="tr-panel">
+                    <div class="tr-badge">TR</div>
+                    <button class="tr-btn" onclick="modTR(-1)">-</button>
+                    <div class="tr-val" id="tr-val">20</div>
+                    <button class="tr-btn" onclick="modTR(1)">+</button>
+                </div>
+                <div>
+                    <div class="gen-info" id="gen-display">제 1 세대</div>
+                    <div class="dash-btns">
+                        <button class="reset-btn" onclick="resetAll()" title="전체 초기화">🔄</button>
+                        <button class="next-btn" onclick="nextGen()">다음 세대 ⏳</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="board-container" id="board">
+                <div class="cell c-mc">
+                    <div class="title">메가크레딧 (M€)</div>
+                    <div class="sub-label">생산량</div>
+                    <div class="dial prod-dial" id="mega-prod-dial"></div>
+                    <div class="sub-label">보유량</div>
+                    <div class="dial" id="mega-amt-dial"></div>
+                </div>
+                <div class="cell c-steel">
+                    <div class="title">강철 (Steel)</div>
+                    <div class="sub-label">생산량</div>
+                    <div class="dial prod-dial" id="steel-prod-dial"></div>
+                    <div class="sub-label">보유량</div>
+                    <div class="dial" id="steel-amt-dial"></div>
+                    <div class="arrow-icon">🔨 2</div>
+                </div>
+                <div class="cell c-tit">
+                    <div class="title">티타늄 (Titanium)</div>
+                    <div class="sub-label">생산량</div>
+                    <div class="dial prod-dial" id="titanium-prod-dial"></div>
+                    <div class="sub-label">보유량</div>
+                    <div class="dial" id="titanium-amt-dial"></div>
+                    <div class="arrow-icon">⭐ 3</div>
+                </div>
+                <div class="cell c-plant">
+                    <div class="title">식물 (Plants)</div>
+                    <div class="sub-label">생산량</div>
+                    <div class="dial prod-dial" id="plant-prod-dial"></div>
+                    <div class="sub-label">보유량</div>
+                    <div class="dial" id="plant-amt-dial"></div>
+                    <div class="arrow-icon">🌿 8 ➡ 🌲</div>
+                </div>
+                <div class="cell c-energy">
+                    <div class="title">전력 (Energy)</div>
+                    <div class="sub-label">생산량</div>
+                    <div class="dial prod-dial" id="energy-prod-dial"></div>
+                    <div class="sub-label">보유량</div>
+                    <div class="dial" id="energy-amt-dial"></div>
+                    <div class="arrow-icon">⚡ ➡ 🔥</div>
+                </div>
+                <div class="cell c-heat">
+                    <div class="title">열 (Heat)</div>
+                    <div class="sub-label">생산량</div>
+                    <div class="dial prod-dial" id="heat-prod-dial"></div>
+                    <div class="sub-label">보유량</div>
+                    <div class="dial" id="heat-amt-dial"></div>
+                    <div class="arrow-icon">🔥 8 ➡ 🌡️</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const OXY_MIN = 0, OXY_MAX = 14;      // 산소 0~14%
+        const TEMP_MIN = -30, TEMP_MAX = 8;   // 온도 -30~+8°C (2°C 단위)
+
+        const state = {
+            tr: 20, gen: 1,
+            oxygen: 0, temp: -30,
+            mega: { amt: 0, prod: 0, minProd: -5 },
+            steel: { amt: 0, prod: 0, minProd: 0 },
+            titanium: { amt: 0, prod: 0, minProd: 0 },
+            plant: { amt: 0, prod: 0, minProd: 0 },
+            energy: { amt: 0, prod: 0, minProd: 0 },
+            heat: { amt: 0, prod: 0, minProd: 0 }
+        };
+
+        const convCost = { greenery: 8, temp: 8 };
+        const resVal = { steel: 2, tit: 3 };
+
+        // 태그 기반 할인 목록 (전체=global 은 항상 적용)
+        const TAGS = ['space', 'build', 'power', 'science', 'earth'];
+
+        const payState = {
+            dc: { global: 0, space: 0, build: 0, power: 0, science: 0, earth: 0 },
+            tags: { space: false, build: false, power: false, science: false, earth: false },
+            use: { steel: 0, tit: 0, heat: 0 },
+            requiredMC: 0
+        };
+
+        const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+        function createDial(resId, type) {
+            return `
+                <div class="btn-col">
+                    <div class="dial-btn" onclick="mod('${resId}', '${type}', -5)">-5</div>
+                    <div class="dial-btn" onclick="mod('${resId}', '${type}', -1)">-1</div>
+                </div>
+                <div class="val-screen" id="${resId}-${type}-val">0</div>
+                <div class="btn-col">
+                    <div class="dial-btn" onclick="mod('${resId}', '${type}', 5)">+5</div>
+                    <div class="dial-btn" onclick="mod('${resId}', '${type}', 1)">+1</div>
+                </div>
+            `;
+        }
+
+        const resources = ['mega', 'steel', 'titanium', 'plant', 'energy', 'heat'];
+        resources.forEach(r => {
+            document.getElementById(`${r}-prod-dial`).innerHTML = createDial(r, 'prod');
+            document.getElementById(`${r}-amt-dial`).innerHTML = createDial(r, 'amt');
+        });
+
+        // ===== 기본 자원 / TR / 세대 =====
+        function mod(resId, type, change) {
+            state[resId][type] += change;
+            if (type === 'prod' && state[resId][type] < state[resId].minProd) state[resId][type] = state[resId].minProd;
+            if (type === 'amt' && state[resId][type] < 0) state[resId][type] = 0;
+            updateUI(); calcPayment();
+        }
+
+        function modTR(change) {
+            state.tr = Math.max(0, state.tr + change);
+            updateUI();
+        }
+
+        function nextGen() {
+            const prevEnergy = state.energy.amt;
+            state.mega.amt += (state.tr + state.mega.prod);
+            state.steel.amt += state.steel.prod;
+            state.titanium.amt += state.titanium.prod;
+            state.plant.amt += state.plant.prod;
+            state.heat.amt += (prevEnergy + state.heat.prod);
+            state.energy.amt = state.energy.prod;
+
+            resources.forEach(r => { if (state[r].amt < 0) state[r].amt = 0; });
+            state.gen++;
+            updateUI(); calcPayment();
+            document.body.style.opacity = '0.7'; setTimeout(() => document.body.style.opacity = '1', 150);
+        }
+
+        // ===== 글로벌 파라미터 =====
+        function modGlobal(param, dir) {
+            if (param === 'oxygen') state.oxygen = clamp(state.oxygen + dir, OXY_MIN, OXY_MAX);
+            else state.temp = clamp(state.temp + dir * 2, TEMP_MIN, TEMP_MAX);
+            updateUI();
+        }
+
+        function modConvCost(type, change) {
+            convCost[type] = Math.max(1, convCost[type] + change);
+            updateUI();
+        }
+
+        function plantToGreenery() {
+            const cost = convCost.greenery;
+            if (state.plant.amt < cost) { alert(`식물이 부족합니다! (필요 ${cost}, 보유 ${state.plant.amt})`); return; }
+            state.plant.amt -= cost;
+            if (state.oxygen < OXY_MAX) {
+                state.oxygen += 1; state.tr += 1; updateUI();
+            } else {
+                updateUI();
+                alert('🌿 나무 타일 배치! 산소가 최대치(14%)라 산소·TR은 오르지 않습니다. (점수용 타일)');
+            }
+        }
+
+        function heatToTemp() {
+            if (state.temp >= TEMP_MAX) { alert('온도가 이미 최대치(+8°C)입니다!'); return; }
+            const cost = convCost.temp;
+            if (state.heat.amt < cost) { alert(`열이 부족합니다! (필요 ${cost}, 보유 ${state.heat.amt})`); return; }
+            state.heat.amt -= cost;
+            state.temp = clamp(state.temp + 2, TEMP_MIN, TEMP_MAX);
+            state.tr += 1; updateUI();
+        }
+
+        // ===== 자원 교환가치 =====
+        function modResVal(type, change) {
+            resVal[type] = Math.max(1, resVal[type] + change);
+            updateUI(); calcPayment();
+        }
+
+        // ===== UI =====
+        function updateUI() {
+            document.getElementById('tr-val').innerText = state.tr;
+            document.getElementById('gen-display').innerText = `제 ${state.gen} 세대`;
+            resources.forEach(r => {
+                document.getElementById(`${r}-amt-val`).innerText = state[r].amt;
+                document.getElementById(`${r}-prod-val`).innerText = state[r].prod;
+            });
+
+            // 할인 (전체 + 태그 5종)
+            document.getElementById('dc-global').innerText = payState.dc.global;
+            TAGS.forEach(t => { document.getElementById(`dc-${t}`).innerText = payState.dc[t]; });
+
+            // 글로벌 파라미터
+            document.getElementById('oxygen-val').innerText = state.oxygen;
+            document.getElementById('temp-val').innerText = state.temp;
+            document.getElementById('cost-greenery').innerText = convCost.greenery;
+            document.getElementById('cost-greenery-adj').innerText = convCost.greenery;
+            document.getElementById('cost-temp').innerText = convCost.temp;
+            document.getElementById('cost-temp-adj').innerText = convCost.temp;
+
+            // 교환가치 + 결제 폼
+            document.getElementById('rv-steel').innerText = resVal.steel;
+            document.getElementById('rv-tit').innerText = resVal.tit;
+            document.getElementById('res-name-steel').innerText = `🛠️ 강철 사용 (×${resVal.steel})`;
+            document.getElementById('res-name-tit').innerText = `⭐ 티타늄 사용 (×${resVal.tit})`;
+            const mult = { steel: resVal.steel, tit: resVal.tit, heat: 1 };
+            ['steel', 'tit', 'heat'].forEach(t => {
+                document.getElementById(`pay-${t}`).innerText = payState.use[t];
+                document.getElementById(`val-${t}`).innerText = `(${payState.use[t] * mult[t]} M€)`;
+            });
+
+            saveGame();
+        }
+
+        // ===== 결제기 =====
+        function modDC(type, change) {
+            payState.dc[type] = Math.max(0, payState.dc[type] + change);
+            updateUI(); calcPayment();
+        }
+
+        function toggleTag(tag) {
+            payState.tags[tag] = !payState.tags[tag];
+            document.getElementById(`tag-${tag}`).classList.toggle('active');
+            calcPayment();
+        }
+
+        function modPayRes(type, change) {
+            const targetRes = type === 'tit' ? 'titanium' : type;
+            payState.use[type] = Math.max(0, Math.min(state[targetRes].amt, payState.use[type] + change));
+            updateUI(); calcPayment();
+        }
+
+        function calcPayment() {
+            const baseCost = parseInt(document.getElementById('base-cost').value) || 0;
+
+            let totalDiscount = payState.dc.global;
+            TAGS.forEach(t => { if (payState.tags[t]) totalDiscount += payState.dc[t]; });
+
+            const finalCost = Math.max(0, baseCost - totalDiscount);
+            const subValue = (payState.use.steel * resVal.steel) + (payState.use.tit * resVal.tit) + (payState.use.heat * 1);
+            payState.requiredMC = finalCost > subValue ? finalCost - subValue : 0;
+
+            document.getElementById('calc-breakdown').innerText = `기본 ${baseCost} - 할인 ${totalDiscount} = 최종 비용: ${finalCost} M€`;
+
+            const mcDisplay = document.getElementById('final-mc-req');
+            if (payState.requiredMC > state.mega.amt) {
+                mcDisplay.innerText = `M€ 부족: ${payState.requiredMC} 필요 (현재 ${state.mega.amt})`;
+                mcDisplay.className = 'final-mc-text error';
+            } else {
+                mcDisplay.innerText = `M€ 자동 차감액: ${payState.requiredMC}`;
+                mcDisplay.className = 'final-mc-text';
+            }
+        }
+
+        function executePayment() {
+            calcPayment();
+            if (payState.requiredMC > state.mega.amt) { alert("메가크레딧(M€)이 부족합니다!"); return; }
+            state.mega.amt -= payState.requiredMC;
+            state.steel.amt -= payState.use.steel;
+            state.titanium.amt -= payState.use.tit;
+            state.heat.amt -= payState.use.heat;
+
+            document.getElementById('base-cost').value = 0;
+            TAGS.forEach(t => { payState.tags[t] = false; document.getElementById(`tag-${t}`).classList.remove('active'); });
+            ['steel', 'tit', 'heat'].forEach(r => { payState.use[r] = 0; });
+
+            updateUI(); calcPayment();
+            alert("결제가 완료되었습니다!");
+        }
+
+        // ===== 저장 / 불러오기 / 초기화 =====
+        const SAVE_KEY = 'tm-board-save-v1';
+        const THEME_KEY = 'tm-board-theme';
+        let _loading = false;   // 불러오는 중엔 저장 스킵
+
+        function saveGame() {
+            if (_loading) return;
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify({
+                    state, convCost, resVal, dc: payState.dc
+                }));
+            } catch (e) {}
+        }
+
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return;
+                const d = JSON.parse(raw);
+                if (d.state) Object.assign(state, d.state);
+                if (d.convCost) Object.assign(convCost, d.convCost);
+                if (d.resVal) Object.assign(resVal, d.resVal);
+                if (d.dc) Object.assign(payState.dc, d.dc);
+            } catch (e) {}
+        }
+
+        function resetAll() {
+            if (!confirm('모든 자원 · 생산 · 할인 · 설정을 초기화할까요?\n(되돌릴 수 없습니다. 테마는 유지됩니다.)')) return;
+            try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+            location.reload();
+        }
+
+        // ===== 테마 =====
+        const THEME_BAR = { control: '#020617', minimal: '#eef2f7', mars: '#24100a' };
+        function setTheme(t) {
+            document.body.dataset.theme = t;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.content = THEME_BAR[t] || '#020617';
+            try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+        }
+
+        // ===== 초기화 =====
+        _loading = true;
+        loadGame();
+        let startTheme = 'control';
+        try { startTheme = localStorage.getItem(THEME_KEY) || 'control'; } catch (e) {}
+        setTheme(startTheme);
+        _loading = false;
+        updateUI(); calcPayment();
+
+        // ===== 서비스워커 (오프라인, http/https 호스팅 시에만) =====
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>
